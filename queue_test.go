@@ -10,8 +10,6 @@ import (
 
 func TestElementsYieldedInTimeOrder(t *testing.T) {
 	q := New[int](context.Background(), 3)
-	go q.Run()
-
 	q.Add(time.Now().Add(100*time.Millisecond), 2)
 	q.Add(time.Now().Add(200*time.Millisecond), 3)
 	q.Add(time.Now().Add(50*time.Millisecond), 1)
@@ -41,8 +39,6 @@ func TestElementsYieldedAtCorrectTime(t *testing.T) {
 	}
 
 	q := New[int](context.Background(), 5)
-	go q.Run()
-
 	for i := range vals {
 		q.Add(dues[i], vals[i])
 	}

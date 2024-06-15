@@ -16,11 +16,6 @@ go get github.com/jaz303/delayqueue
 // is the buffer size of the outgoing channel.
 queue := delayqueue.New[int](context.Background(), 0)
 
-// Run the queue in the background
-// This must be called before any items are added to the
-// queue otherwise such attempts will block forever.
-go queue.Run()
-
 go func() {
     // Read items from the queue
     for i := range queue.C {

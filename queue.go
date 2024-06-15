@@ -8,8 +8,8 @@ import (
 
 type Queue[T any] struct {
 	// Items added to the queue are sent to this channel as they become due.
-	// This channel must be continously read in order to prevent the whole
-	// queue from blocking.
+	// If the number of items that will be added to the queue exceeds the buffer
+	// size, this channel must be continously read in order to prevent blocking.
 	C <-chan T
 
 	ctx       context.Context
@@ -28,14 +28,15 @@ func New[T any](ctx context.Context, outBufferSize int) *Queue[T] {
 		items:     make(pqueue[T], 0),
 	}
 	out.C = out.ch
+	go out.run()
 	return out
 }
 
 // Run the queue, processing new additions and emitting existing items as
-// they become due. Run() will keep running until the context.Context passed
+// they become due. run() will keep running until the context.Context passed
 // to New() is cancelled, at which point the outgoing channel C is closed and
 // the method will return.
-func (q *Queue[T]) Run() {
+func (q *Queue[T]) run() {
 	defer close(q.ch)
 
 	timer := time.NewTimer(0)
