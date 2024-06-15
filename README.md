@@ -1,6 +1,6 @@
 # delayqueue
 
-This is a simple delay queue that sends each added value to a channel after a configurable time has elapsed. Compared to the naive approach of spawning one goroutine per item, this implementation uses only a single main goroutine, an auxiliary timer, and a priority queue, so should therefore comfortably handle a large number of items.
+This is a simple delay queue that sends each added value to a channel after a configurable time has elapsed. Compared to the naive approach of spawning one goroutine per item, this implementation uses only a single main goroutine, a single auxiliary timer, and a priority queue, so should therefore comfortably handle a large number of items.
 
 ## Install
 
