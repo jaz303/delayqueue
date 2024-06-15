@@ -79,6 +79,7 @@ func (q *Queue[T]) run() {
 // Add an item i to the queue, to be emitted at or after the given due time.
 // Add() will return an error if the queue's context is cancelled before the
 // operation completes; the returned error will be ctx.Err().
+// Add() can be called safely from multiple goroutines.
 func (q *Queue[T]) Add(due time.Time, i T) error {
 	select {
 	case <-q.ctx.Done():
