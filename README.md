@@ -1,6 +1,6 @@
 # delayqueue
 
-This is a simple delay queue that sends each added value to a channel after a configurable time has elapsed. Compared to the naive approach of spawning one goroutine per item, this implementation uses only a single main goroutine, a single auxiliary timer, and a priority queue, so should therefore comfortably handle a large number of items.
+This is a simple delay queue that sends each added value to a channel after a specified delay has elapsed. Compared to the naive approach of spawning one goroutine per item, this implementation uses only a single main goroutine, a single auxiliary timer, and a priority queue, so should therefore comfortably handle a large number of items.
 
 ## Install
 
@@ -18,7 +18,7 @@ queue := delayqueue.New[int](context.Background(), 0)
 
 // Run the queue in the background
 // This must be called before any items are added to the
-// queue otherwise attempts to add items will block forever.
+// queue otherwise such attempts will block forever.
 go queue.Run()
 
 go func() {
