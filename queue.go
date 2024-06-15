@@ -27,6 +27,8 @@ func New[T any](ctx context.Context, outBufferSize int) *Queue[T] {
 }
 
 func (q *Queue[T]) Run() {
+	defer close(q.ch)
+
 	timer := time.NewTimer(0)
 	if !timer.Stop() {
 		<-timer.C
