@@ -1,6 +1,6 @@
 module github.com/jaz303/delayqueue
 
-go 1.22.4
+go 1.19
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
