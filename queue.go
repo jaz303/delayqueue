@@ -7,6 +7,9 @@ import (
 )
 
 type Queue[T any] struct {
+	// Items added to the queue are sent to this channel as they become due.
+	// This channel must be continously read in order to prevent the whole
+	// queue from blocking.
 	C <-chan T
 
 	ctx       context.Context
@@ -15,6 +18,8 @@ type Queue[T any] struct {
 	items     pqueue[T]
 }
 
+// Create a new Queue that will run until the provided context is cancelled.
+// The second argument specifies the buffer size of C, the outgoing channel.
 func New[T any](ctx context.Context, outBufferSize int) *Queue[T] {
 	out := &Queue[T]{
 		ctx:       ctx,
@@ -26,6 +31,10 @@ func New[T any](ctx context.Context, outBufferSize int) *Queue[T] {
 	return out
 }
 
+// Run the queue, processing new additions and emitting existing items as
+// they become due. Run() will keep running until the context.Context passed
+// to New() is cancelled, at which point the outgoing channel C is closed and
+// the method will return.
 func (q *Queue[T]) Run() {
 	defer close(q.ch)
 
@@ -62,11 +71,14 @@ func (q *Queue[T]) Run() {
 	}
 }
 
-func (q *Queue[T]) Add(due time.Time, val T) error {
+// Add an item i to the queue, to be emitted at or after the given due time.
+// Add() will return an error if the queue's context is cancelled before the
+// operation completes; the returned error will be ctx.Err().
+func (q *Queue[T]) Add(due time.Time, i T) error {
 	select {
 	case <-q.ctx.Done():
 		return q.ctx.Err()
-	case q.additions <- item[T]{Due: due, V: val}:
+	case q.additions <- item[T]{Due: due, V: i}:
 		return nil
 	}
 }
