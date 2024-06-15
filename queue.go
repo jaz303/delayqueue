@@ -65,7 +65,11 @@ func (q *Queue[T]) run() {
 			} else {
 				nextDueAt = time.Time{}
 			}
-			q.ch <- out.V
+			select {
+			case q.ch <- out.V:
+			case <-q.ctx.Done():
+				return
+			}
 		case <-q.ctx.Done():
 			return
 		}
