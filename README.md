@@ -32,3 +32,14 @@ queue.Add(now.Add(100 * time.Millisecond), 2)
 queue.Add(now.Add(500 * time.Millisecond), 3)
 queue.Add(now, 1)
 ```
+
+# Benchmarks
+
+`benchmark_test.go` compares `delayqueue` to a goroutine per item approach:
+
+```
+BenchmarkDelayQueue-4   	       1	8313947735 ns/op	320948480 B/op	10001373 allocs/op
+BenchmarkNaive-4        	       1	10157876788 ns/op	3296331856 B/op	19999860 allocs/op
+```
+
+`delayqueue` is about 20% faster, performs half as many allocations, and uses a whopping **10 times** less RAM.
