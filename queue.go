@@ -41,15 +41,16 @@ func New[T any](ctx context.Context, outBufferSize int) *Queue[T] {
 }
 
 func (q *Queue[T]) dispatch() {
-	q.readyLock.Lock()
 	for {
 		if q.ctx.Err() != nil {
 			return
 		}
+		q.readyLock.Lock()
 		for q.ready.Len() == 0 {
 			q.readySignal.Wait()
 		}
 		i := q.ready.Remove(q.ready.Front()).(T)
+		q.readyLock.Unlock()
 		select {
 		case q.ch <- i:
 		case <-q.ctx.Done():
