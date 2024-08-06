@@ -2,7 +2,9 @@ package delayqueue
 
 import (
 	"container/heap"
+	"container/list"
 	"context"
+	"sync"
 	"time"
 )
 
@@ -16,6 +18,10 @@ type Queue[T any] struct {
 	ch        chan T
 	additions chan item[T]
 	items     pqueue[T]
+
+	readyLock   sync.Mutex
+	readySignal *sync.Cond
+	ready       list.List
 }
 
 // Create a new Queue that will run until the provided context is cancelled.
@@ -28,8 +34,28 @@ func New[T any](ctx context.Context, outBufferSize int) *Queue[T] {
 		items:     make(pqueue[T], 0),
 	}
 	out.C = out.ch
+	out.readySignal = sync.NewCond(&out.readyLock)
+	go out.dispatch()
 	go out.run()
 	return out
+}
+
+func (q *Queue[T]) dispatch() {
+	q.readyLock.Lock()
+	for {
+		if q.ctx.Err() != nil {
+			return
+		}
+		for q.ready.Len() == 0 {
+			q.readySignal.Wait()
+		}
+		i := q.ready.Remove(q.ready.Front()).(T)
+		select {
+		case q.ch <- i:
+		case <-q.ctx.Done():
+			return
+		}
+	}
 }
 
 // Run the queue, processing new additions and emitting existing items as
@@ -65,11 +91,10 @@ func (q *Queue[T]) run() {
 			} else {
 				nextDueAt = time.Time{}
 			}
-			select {
-			case q.ch <- out.V:
-			case <-q.ctx.Done():
-				return
-			}
+			q.readyLock.Lock()
+			q.ready.PushBack(out.V)
+			q.readyLock.Unlock()
+			q.readySignal.Signal()
 		case <-q.ctx.Done():
 			return
 		}

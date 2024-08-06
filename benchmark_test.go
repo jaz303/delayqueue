@@ -24,21 +24,19 @@ func BenchmarkDelayQueue(b *testing.B) {
 	}()
 
 	for i := 0; i < count; i++ {
-		queue.Add(now.Add(time.Duration(i)), i)
+		queue.Add(now, i)
 	}
 
 	wg.Wait()
 }
 
 func BenchmarkNaive(b *testing.B) {
-	now := time.Now()
 	results := make(chan int)
 
 	wg := sync.WaitGroup{}
 	wg.Add(count)
 	for i := 0; i < count; i++ {
 		go func(i int) {
-			time.Sleep(time.Until(now.Add(time.Duration(i))))
 			results <- i
 			wg.Done()
 		}(i)
